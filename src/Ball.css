@@ -1,0 +1,26 @@
+.Ball {
+  border-radius: 100%;
+}
+
+.BallPit {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+  width: calc(100% - 50px);
+  margin: 25px;
+}
+
+.BallPit-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.Fixation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 100px;
+}
