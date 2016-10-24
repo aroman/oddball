@@ -1,64 +1,84 @@
-import _ from 'underscore';
+import _ from 'lodash';
 import React, { Component } from 'react';
 import KeyBinding from 'react-keybinding-component';
 import './App.css';
-import './Ball.css';
 
-const BALL_SIZE = 50 // px
+const STIM_SIZE = 50 // px
 const GRID_SIZE = 64 // scalar
+const VISUAL_ANGLE = 11 // px
 
-const Colors = {
+const NormalColors = {
   Red: '#FF0000',
   Green: '#06cc06'
 }
 
-let defaultColor = Colors.Red
+const OddballColors = [
+  'blue',
+  'yellow',
+  'red',
+  'purple',
+  'orange',
+]
 
-class Ball extends Component {
-  render() {
-    const {size, isShown, color} = this.props
-    const style = {
-      height: size,
-      width: size,
-      opacity: isShown ? 1 : 0,
-      backgroundColor: this.props.color,
-    }
-    return (
-      <div className="Ball" style={style}/>
-    )
-  }
+const ISIJitter = () => {
+  return _.random(950, 1150)
 }
 
-const ballsToShow = () => _
+const placementJitter = () => {
+  return _.random(-VISUAL_ANGLE, VISUAL_ANGLE)
+}
+
+const stimuliToShow = () => _
   .chain(GRID_SIZE)
   .range()
   .shuffle()
-  .first(_.random(6, 12))
-  .sortBy(_.identity)
+  .take(_.random(6, 12))
+  .sortBy()
   .value()
 
-class BallPit extends Component {
-
+class Circle extends Component {
   render() {
-    const balls = ballsToShow()
-    const rows = Math.sqrt(GRID_SIZE)
-    const cols = rows
-    let ballsPlaced = 0
-    console.log(balls)
+    const { isShown, color } = this.props
+    const style = {
+      height: STIM_SIZE,
+      width: STIM_SIZE,
+      marginTop: placementJitter(),
+      marginLeft: placementJitter(),
+      marginBottom: placementJitter(),
+      marginRight: placementJitter(),
+      opacity: isShown ? 1 : 0,
+      backgroundColor: color,
+    }
+    return <div className="Circle" style={style}/>
+  }
+}
+
+class Star extends Component {
+  render() {
+    const { isShown } = this.props
+    const style = {
+      marginTop: placementJitter(),
+      marginLeft: placementJitter(),
+      marginBottom: placementJitter(),
+      marginRight: placementJitter(),
+      fontSize: STIM_SIZE * 1.5,
+      opacity: isShown ? 1 : 0,
+      color: _.sample(OddballColors),
+    }
+    return <div className="Star" style={style}/>
+  }
+}
+
+class Grid extends Component {
+  render() {
+    const cols = Math.sqrt(GRID_SIZE)
+    const stimuli = this.props.stimuli
     return (
-      <div className="BallPit">
+      <div className="Grid">
         {
           _.range(cols).map(i => (
-            <div className="BallPit-column">
-              {
-                _.range(rows).map(() => (
-                  <Ball
-                    color={defaultColor}
-                    isShown={balls.includes(ballsPlaced++)}
-                    size={BALL_SIZE}
-                  />
-                ))
-              }
+            <div className="Grid-column">
+            { _.range(cols).map(j => stimuli[i * cols + j]) }
             </div>
           ))
         }
@@ -79,46 +99,55 @@ class Fixation extends Component {
 
 const Mode = {
   Fixation: 1,
-  Balls: 2,
+  StandardStimlus: 2,
+  OddballStimulus: 3,
 }
+
+const NUM_MODES = Object.keys(Mode).length
 
 class App extends KeyBinding {
 
   constructor(props) {
     super(props)
     this.state = {
-      mode: Mode.Balls,
+      mode: Mode.StandardStimlus,
     }
   }
 
   onKey(event) {
-    if (event.keyCode === 'R'.charCodeAt()) {
-      this.setState({mode: Mode.Balls})
-      this.forceUpdate()
+    if (event.keyCode === 'M'.charCodeAt()) {
+      this.setState({mode: (this.state.mode + 1) % NUM_MODES})
+      console.log(this.state.mode)
     }
-    if (event.keyCode === 'C'.charCodeAt()) {
-      defaultColor = defaultColor == Colors.Green ? Colors.Red : Colors.Green
-      this.setState({mode: Mode.Balls})
-      this.forceUpdate()
-    }
-    if (event.keyCode === 'F'.charCodeAt()) {
-      this.setState({mode: Mode.Fixation})
-    }
+    this.forceUpdate()
   }
 
   render() {
-    const width = window.innerWidth - BALL_SIZE;
-    const height = window.innerHeight - BALL_SIZE;
+    if (this.state.mode === Mode.Fixation) {
+      return (
+        <div className="App">
+          <Fixation/>
+        </div>
+      )
+    }
+
+    let stimuli = []
+    const toShow = stimuliToShow()
+    let stimuliPlaced = 0
+    stimuli = _.range(GRID_SIZE).map(() => {
+      const isShown = toShow.includes(stimuliPlaced++)
+      if (this.state.mode === Mode.StandardStimlus) {
+        return <Circle color={NormalColors.Green} isShown={isShown} />
+      }
+      return <Star isShown={isShown} />
+    })
+
     return (
       <div className="App">
-        {
-          this.state.mode === Mode.Balls
-          ? <BallPit onKey={this.onKey}/>
-          : <Fixation/>
-        }
+        <Grid onKey={this.onKey} stimuli={stimuli}/>
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default App

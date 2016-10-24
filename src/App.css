@@ -1,3 +1,38 @@
 html, body, #root, .App {
   height: 100%;
 }
+
+.Circle {
+  border-radius: 100%;
+}
+
+.Star {
+  background-color: rgba(0,0,0,0) !important;
+}
+
+.Star::before {
+  content: '★';
+}
+
+.Grid {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+  width: calc(100% - 50px);
+  margin: 25px;
+}
+
+.Grid-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.Fixation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 100px;
+}
