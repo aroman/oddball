@@ -130,6 +130,13 @@ const Mode = {
   OddballStimulus: 3,
 }
 
+const OddballType = {
+  Star: 0,
+  Circle: 1,
+}
+
+const getOddballType = () => _.sample(OddballType)
+
 class App extends KeyBinding {
   constructor(props) {
     super(props)
@@ -142,30 +149,31 @@ class App extends KeyBinding {
       standard: stimuliToShow(),
       oddballScreenNum: getOddballScreenNum(numScreens),
       oddballDuration: getOddballDuration(),
+      oddballType: getOddballType(),
     }
   }
 
   advanceMode() {
     const mode = (() => {
       switch (this.state.mode) {
+        case Mode.Instructions:
         case Mode.StandardStimlus:
         case Mode.OddballStimulus:
           return Mode.Fixation
         case Mode.Fixation:
           return this.state.screenNum === this.state.oddballScreenNum ? Mode.OddballStimulus : Mode.StandardStimlus
         default:
-          throw Error("You shouldn't be here.")
+          throw Error("You shouldn't be here (advanceMode).")
       }
     })()
 
     const screenNum = mode === Mode.Fixation ? this.state.screenNum + 1 : this.state.screenNum
-
+    setTimeout(() => this.advanceMode(), this.delay(mode))
     this.setState({mode, screenNum})
-    setTimeout(() => this.advanceMode(), this.delay())
   }
 
-  delay() {
-    switch (this.state.mode) {
+  delay(mode) {
+    switch (mode) {
       case Mode.Fixation:
         return ISIJitter()
       case Mode.StandardStimlus:
@@ -173,7 +181,7 @@ class App extends KeyBinding {
       case Mode.OddballStimulus:
         return this.state.oddballDuration
       default:
-        throw Error("You shouldn't be here.")
+        throw Error("You shouldn't be here (delay).")
     }
   }
 
@@ -182,7 +190,7 @@ class App extends KeyBinding {
       return (
         <div className="App">
           <Instructions
-            onDone={() => this.setState({mode: Mode.StandardStimlus})}
+            onDone={() => this.advanceMode()}
             title="Welcome to our experiment."
             body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
           />
@@ -198,14 +206,19 @@ class App extends KeyBinding {
     }
 
     let stimuli = []
-    const toShow = this.state.standard ? this.state.mode === Mode.StandardStimlus : stimuliToShow()
+    const toShow = this.state.mode === Mode.StandardStimlus ? this.state.standard : stimuliToShow()
     let stimuliPlaced = 0
     stimuli = _.range(GRID_SIZE).map(() => {
       const isShown = toShow.includes(stimuliPlaced++)
       if (this.state.mode === Mode.StandardStimlus) {
         return <Circle color={NormalColors.Green} isShown={isShown} />
+      } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Star) {
+        return <Star isShown={isShown} />
+      } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Circle) {
+        return <Circle color={NormalColors.Red} isShown={isShown} />
+      } else {
+        throw Error("You shouldn't be here (render)")
       }
-      return <Star isShown={isShown} />
     })
 
     return (
