@@ -226,7 +226,7 @@ class App extends KeyBinding {
     super(props)
     const numScreens = getNumScreens()
     this.state = {
-      mode: Mode.UserInput,
+      mode: Mode.Instructions,
       trial: 0,
       screenNum: 0,
       numScreens: numScreens,
