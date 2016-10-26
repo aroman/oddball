@@ -119,7 +119,7 @@ class Instructions extends Component {
 
   render() {
 
-    const { title, body, onDone } = this.props
+    const { title, onDone } = this.props
     return (
       <div className="Instructions">
         <div className="Instructions-content">
@@ -137,20 +137,73 @@ class Instructions extends Component {
 }
 
 class UserInput extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      number: null,
+      isShorter: null,
+    }
+  }
+
+  componentDidMount() {
+    this.numberInput.focus()
+  }
+
+  handleSubmit() {
+    this.props.onSubmit(this.state)
+  }
+
   render() {
+    const hasValidAnswers = this.state.number && (this.state.isShorter != null)
     return (
       <div className="UserInput">
-        <div className="UserInput-title">Hi Avi</div>
-        <div className="UserInput-number">
-          <input type='number' placeholder='How many non-green objects did you see?'/>
-        </div>
-        <div className="UserInput-duration">
-          <button className="UserInput-shorter">Shorter</button>
-          <button className="UserInput-longer">Longer</button>
+        <div className="UserInput-container">
+          <div className="UserInput-title">Please answer as accurately as possible.</div>
+          <div className="UserInput-group">
+            <div className="UserInput-label">How many <strong>non-green</strong> objects did you see?</div>
+            <input
+              className="UserInput-number"
+              type="number"
+              min={1}
+              max={30}
+              onChange={event => this.setState({number: Number(event.target.value)})}
+              ref={c => this.numberInput = c}
+            />
+          </div>
+          <div className="UserInput-group">
+            <div className="UserInput-label">Were the <strong>non-green</strong> objects displayed for a shorter or longer period of time than the green objects?</div>
+            <div className="UserInput-duration">
+              <label>
+                <input
+                  type="radio"
+                  name="duration"
+                  value="shorter"
+                  onChange={() => this.setState({isShorter: true})}
+                />
+                shorter
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="duration"
+                  value="longer"
+                  onChange={() => this.setState({isShorter: false})}
+                />
+                longer
+              </label>
+            </div>
+          </div>
+          <button
+            className="UserInput-submit"
+            disabled={!hasValidAnswers}
+            onClick={this.handleSubmit.bind(this)}>submit
+          </button>
         </div>
       </div>
     )
   }
+
 }
 
 const Mode = {
@@ -173,7 +226,7 @@ class App extends KeyBinding {
     super(props)
     const numScreens = getNumScreens()
     this.state = {
-      mode: Mode.Instructions,
+      mode: Mode.UserInput,
       trial: 0,
       screenNum: 0,
       numScreens: numScreens,
@@ -261,7 +314,7 @@ class App extends KeyBinding {
     if (this.state.mode === Mode.UserInput) {
       return (
         <div className="App">
-          <UserInput/>
+          <UserInput onSubmit={data => alert(JSON.stringify(data))}/>
         </div>
       )
     }
