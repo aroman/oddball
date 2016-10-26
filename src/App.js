@@ -221,7 +221,7 @@ class App extends KeyBinding {
 
   render() {
 
-    if (this.state.mode === Mode.Instructions)
+    if (this.state.mode === Mode.Instructions) {
       return (
         <div className="App">
           <Instructions
@@ -249,7 +249,7 @@ class App extends KeyBinding {
         </div>
       )
     }
-    
+
     if (this.state.mode === Mode.Fixation) {
       return (
         <div className="App">
