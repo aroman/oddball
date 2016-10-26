@@ -97,7 +97,24 @@ class Fixation extends Component {
   }
 }
 
+class Instructions extends Component {
+
+  render() {
+    const { title, body } = this.props
+    return (
+      <div className="Instructions">
+        <div className="Instructions-content">
+          <div className="Instructions-title">{title}</div>
+          <div className="Instructions-body">{body}</div>
+        </div>
+      </div>
+    )
+  }
+
+}
+
 const Mode = {
+  Instructions: 0,
   Fixation: 1,
   StandardStimlus: 2,
   OddballStimulus: 3,
@@ -110,7 +127,7 @@ class App extends KeyBinding {
   constructor(props) {
     super(props)
     this.state = {
-      mode: Mode.StandardStimlus,
+      mode: Mode.Instructions,
     }
   }
 
@@ -123,6 +140,16 @@ class App extends KeyBinding {
   }
 
   render() {
+
+    return (
+      <div className="App">
+        <Instructions
+          title="Welcome to our experiment."
+          body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
+        />
+      </div>
+    )
+
     if (this.state.mode === Mode.Fixation) {
       return (
         <div className="App">

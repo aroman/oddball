@@ -1,5 +1,7 @@
 html, body, #root, .App {
   height: 100%;
+  width: 100%;
+  font-family: 'Open Sans', sans-serif !important;
 }
 
 .Circle {
@@ -35,4 +37,30 @@ html, body, #root, .App {
   justify-content: center;
   height: 100%;
   font-size: 100px;
+}
+
+.Instructions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 24px;
+  height: 100%;
+}
+
+.Instructions-content {
+  max-width: 575px;
+  margin-top: -100px;
+  text-align: center;
+}
+
+.Instructions-title {
+  font-size: 36px;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.Instructions-body {
+  font-weight: 500;
+  line-height: 1.5em;
 }
