@@ -63,4 +63,9 @@ html, body, #root, .App {
 .Instructions-body {
   font-weight: 500;
   line-height: 1.5em;
+  margin-bottom: 20px;
+}
+
+.Instructions-button {
+  font-size: 24px;
 }
