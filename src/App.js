@@ -105,7 +105,6 @@ class Fixation extends Component {
 }
 
 class Instructions extends Component {
-
   render() {
     const { title, body, onDone } = this.props
     return (
@@ -120,7 +119,23 @@ class Instructions extends Component {
       </div>
     )
   }
+}
 
+class UserInput extends Component {
+  render() {
+    return (
+      <div className="UserInput">
+        <div className="UserInput-title">Hi Avi</div>
+        <div className="UserInput-number">
+          <input type='number' placeholder='How many non-green objects did you see?'/>
+        </div>
+        <div className="UserInput-duration">
+          <button className="UserInput-shorter">Shorter</button>
+          <button className="UserInput-longer">Longer</button>
+        </div>
+      </div>
+    )
+  }
 }
 
 const Mode = {
@@ -128,6 +143,7 @@ const Mode = {
   Fixation: 1,
   StandardStimlus: 2,
   OddballStimulus: 3,
+  UserInput: 4,
 }
 
 const OddballType = {
@@ -157,9 +173,10 @@ class App extends KeyBinding {
     const mode = (() => {
       switch (this.state.mode) {
         case Mode.Instructions:
+          return Mode.Fixation
         case Mode.StandardStimlus:
         case Mode.OddballStimulus:
-          return Mode.Fixation
+          return this.state.screenNum === this.state.numScreens ? Mode.UserInput : Mode.Fixation
         case Mode.Fixation:
           return this.state.screenNum === this.state.oddballScreenNum ? Mode.OddballStimulus : Mode.StandardStimlus
         default:
@@ -168,7 +185,9 @@ class App extends KeyBinding {
     })()
 
     const screenNum = mode === Mode.Fixation ? this.state.screenNum + 1 : this.state.screenNum
-    setTimeout(() => this.advanceMode(), this.delay(mode))
+    if (mode !== Mode.UserInput) {
+      setTimeout(() => this.advanceMode(), this.delay(mode))
+    }
     this.setState({mode, screenNum})
   }
 
@@ -201,6 +220,14 @@ class App extends KeyBinding {
       return (
         <div className="App">
           <Fixation/>
+        </div>
+      )
+    }
+
+    if (this.state.mode === Mode.UserInput) {
+      return (
+        <div className="App">
+          <UserInput/>
         </div>
       )
     }
