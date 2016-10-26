@@ -100,12 +100,15 @@ class Fixation extends Component {
 class Instructions extends Component {
 
   render() {
-    const { title, body } = this.props
+    const { title, body, onDone } = this.props
     return (
       <div className="Instructions">
         <div className="Instructions-content">
           <div className="Instructions-title">{title}</div>
           <div className="Instructions-body">{body}</div>
+          <button className="Instructions-button" onClick={onDone}>
+            continue
+          </button>
         </div>
       </div>
     )
@@ -144,6 +147,7 @@ class App extends KeyBinding {
     return (
       <div className="App">
         <Instructions
+          onDone={() => alert('continue clicked')}
           title="Welcome to our experiment."
           body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
         />
