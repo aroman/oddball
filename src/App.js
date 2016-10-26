@@ -28,6 +28,13 @@ const placementJitter = () => {
   return _.random(-VISUAL_ANGLE, VISUAL_ANGLE)
 }
 
+const getNumScreens = () => _.random(4, 14)
+
+const getOddballScreenNum = (numScreens) => _.random(4, numScreens)
+
+const getOddballDuration = () => _.sample([750, 900, 1200, 1350])
+
+
 const stimuliToShow = () => _
   .chain(GRID_SIZE)
   .range()
@@ -120,35 +127,63 @@ const Mode = {
   OddballStimulus: 3,
 }
 
-const NUM_MODES = Object.keys(Mode).length
-
 class App extends KeyBinding {
-
   constructor(props) {
     super(props)
+    const numScreens = getNumScreens()
     this.state = {
       mode: Mode.Instructions,
+      trial: 0,
+      screenNum: 0,
+      numScreens: numScreens,
+      standard: stimuliToShow(),
+      oddballScreenNum: getOddballScreenNum(numScreens),
+      oddballDuration: getOddballDuration(),
     }
   }
 
-  onKey(event) {
-    if (event.keyCode === 'M'.charCodeAt()) {
-      this.setState({mode: (this.state.mode + 1) % NUM_MODES})
-      console.log(this.state.mode)
+  advanceMode() {
+    const mode = (() => {
+      switch (this.state.mode) {
+        case Mode.StandardStimlus:
+        case Mode.OddballStimulus:
+          return Mode.Fixation
+        case Mode.Fixation:
+          return this.state.screenNum === this.state.oddballScreenNum ? Mode.OddballStimulus : Mode.StandardStimlus
+        default:
+          throw Error("You shouldn't be here.")
+      }
+    })()
+
+    const screenNum = mode === Mode.Fixation ? this.state.screenNum + 1 : this.state.screenNum
+
+    this.setState({mode, screenNum})
+    setTimeout(() => this.advanceMode(), this.delay())
+  }
+
+  delay() {
+    switch (this.state.mode) {
+      case Mode.Fixation:
+        return ISIJitter()
+      case Mode.StandardStimlus:
+        return 1050;
+      case Mode.OddballStimulus:
+        return this.state.oddballDuration
+      default:
+        throw Error("You shouldn't be here.")
     }
-    this.forceUpdate()
   }
 
   render() {
-
-    return (
-      <div className="App">
-        <Instructions
-          title="Welcome to our experiment."
-          body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
-        />
-      </div>
-    )
+    if (this.state.mode === Mode.Instructions)
+      return (
+        <div className="App">
+          <Instructions
+            title="Welcome to our experiment."
+            body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
+          />
+        </div>
+      )
 
     if (this.state.mode === Mode.Fixation) {
       return (
@@ -159,7 +194,7 @@ class App extends KeyBinding {
     }
 
     let stimuli = []
-    const toShow = stimuliToShow()
+    const toShow = this.state.standard ? this.state.mode === Mode.StandardStimlus : stimuliToShow()
     let stimuliPlaced = 0
     stimuli = _.range(GRID_SIZE).map(() => {
       const isShown = toShow.includes(stimuliPlaced++)
