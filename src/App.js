@@ -34,7 +34,6 @@ const getOddballScreenNum = (numScreens) => _.random(4, numScreens)
 
 const getOddballDuration = () => _.sample([750, 900, 1200, 1350])
 
-
 const stimuliToShow = () => _
   .chain(GRID_SIZE)
   .range()
@@ -105,7 +104,6 @@ class Fixation extends Component {
 }
 
 class Instructions extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -118,7 +116,6 @@ class Instructions extends Component {
   }
 
   render() {
-
     const { title, onDone } = this.props
     return (
       <div className="Instructions">
@@ -137,7 +134,6 @@ class Instructions extends Component {
 }
 
 class UserInput extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -203,7 +199,6 @@ class UserInput extends Component {
       </div>
     )
   }
-
 }
 
 const Mode = {
@@ -273,7 +268,6 @@ class App extends KeyBinding {
   }
 
   render() {
-
     if (this.state.mode === Mode.Instructions) {
       return (
         <div className="App">
