@@ -105,15 +105,30 @@ class Fixation extends Component {
 }
 
 class Instructions extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      canContinue: false,
+    }
+  }
+
+  componentDidMount() {
+    setTimeout(() => this.setState({canContinue: true}), 5000)
+  }
+
   render() {
+
     const { title, body, onDone } = this.props
     return (
       <div className="Instructions">
         <div className="Instructions-content">
           <div className="Instructions-title">{title}</div>
-          <div className="Instructions-body">{body}</div>
-          <button className="Instructions-button" onClick={onDone}>
-            continue
+          <div className="Instructions-body">{this.props.children}</div>
+          <button
+            className="Instructions-button"
+            disabled={!this.state.canContinue}
+            onClick={onDone}>continue
           </button>
         </div>
       </div>
@@ -205,17 +220,36 @@ class App extends KeyBinding {
   }
 
   render() {
+
     if (this.state.mode === Mode.Instructions)
       return (
         <div className="App">
           <Instructions
             onDone={() => this.advanceMode()}
-            title="Welcome to our experiment."
-            body="In this experiment, you will be shown some very distrubing images. Unfortunately, you are not permitted to look away in any circumstance."
-          />
+            title="Please read these instructions carefully."
+          >
+            <p>
+              In this experiment, you will be shown screens displaying <strong>green objects</strong> and screens displaying various <strong>non-green objects</strong>.
+            </p>
+            <p>
+              After viewing these screens, you will answer two questions:
+              <ol>
+                <li><strong>How many</strong> non-green objects did you see?</li>
+                <li>Were the non-green objects displayed for a <strong>shorter</strong> or <strong>longer</strong> period of time than the green objects?</li>
+              </ol>
+            </p>
+            <p>
+              First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.<p/>
+            </p>
+            <p>
+              If you understand these instructions, please press <strong>continue</strong>.
+              Otherwise, please <strong>ask for help</strong>.
+            </p>
+          </Instructions>
         </div>
       )
-
+    }
+    
     if (this.state.mode === Mode.Fixation) {
       return (
         <div className="App">
