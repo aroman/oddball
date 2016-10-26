@@ -6,6 +6,8 @@ import './App.css';
 const STIM_SIZE = 50 // px
 const GRID_SIZE = 64 // scalar
 const VISUAL_ANGLE = 11 // px
+const NUM_BLOCKS = 8 // 1-indexed because I suck
+const NUM_TRIALS_PER_BLOCK = 19 // 0-indexed because I suck
 
 const NormalColors = {
   Red: '#FF0000',
@@ -18,6 +20,19 @@ const OddballColors = [
   'red',
   'purple',
   'orange',
+]
+
+const CSV_Headers = [
+  'user_id',
+  'block_num',
+  'trial_num',
+  'is_star',
+  'actual_num_objects',
+  'reported_num_objects',
+  'oddball_duration',
+  'actual_shorter',
+  'reported_shorter',
+  'oddball_locs'
 ]
 
 const ISIJitter = () => {
@@ -133,12 +148,51 @@ class Instructions extends Component {
   }
 }
 
+class InterBlockScreen extends Component {
+  render() {
+    const { onDone, blockNum } = this.props
+    const blockText = blockNum === 0 ? 'Practice Block' : 'Block ' + blockNum + '/' + NUM_BLOCKS
+    const relaxText = blockNum === 0 ? '' : 'If you need to take a short break, please do so now.'
+
+    return (
+      <div className="InterBlockScreen">
+        <div className="InterBlockScreen-content">{blockText}</div>
+        <div className="InterBlockScreen-content2">{relaxText}</div>
+        <button
+          className="InterBlockScreen-button"
+          onClick={onDone}>continue
+        </button>
+      </div>
+    )
+  }
+}
+
+class EndScreen extends Component {
+  render() {
+    const csv = [CSV_Headers].concat(this.props.data).map((datum) => datum.join(",")).join("\n")
+    const data = "data:text/csv;charset=utf-8," + csv
+
+    const encodedUri = encodeURI(data)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", "results_" + this.props.user + ".csv")
+
+    link.click()
+
+    return (
+      <div className="EndScreen">
+        Thank you. Your results have been recorded. Have a nice day.
+      </div>
+    )
+  }
+}
+
 class UserInput extends Component {
   constructor(props) {
     super(props)
     this.state = {
       number: null,
-      isShorter: null,
+      shorter: null,
     }
   }
 
@@ -151,7 +205,7 @@ class UserInput extends Component {
   }
 
   render() {
-    const hasValidAnswers = this.state.number && (this.state.isShorter != null)
+    const hasValidAnswers = this.state.number && (this.state.shorter != null)
     return (
       <div className="UserInput">
         <div className="UserInput-container">
@@ -175,7 +229,7 @@ class UserInput extends Component {
                   type="radio"
                   name="duration"
                   value="shorter"
-                  onChange={() => this.setState({isShorter: true})}
+                  onChange={() => this.setState({shorter: true})}
                 />
                 shorter
               </label>
@@ -184,7 +238,7 @@ class UserInput extends Component {
                   type="radio"
                   name="duration"
                   value="longer"
-                  onChange={() => this.setState({isShorter: false})}
+                  onChange={() => this.setState({shorter: false})}
                 />
                 longer
               </label>
@@ -207,6 +261,8 @@ const Mode = {
   StandardStimlus: 2,
   OddballStimulus: 3,
   UserInput: 4,
+  InterBlockScreen: 5,
+  EndScreen: 6,
 }
 
 const OddballType = {
@@ -221,11 +277,15 @@ class App extends KeyBinding {
     super(props)
     const numScreens = getNumScreens()
     this.state = {
+      data: [],
+      user: 217,
       mode: Mode.Instructions,
+      block: 0,
       trial: 0,
-      screenNum: 0,
+      screenNum: -1,
       numScreens: numScreens,
       standard: stimuliToShow(),
+      oddball: stimuliToShow(),
       oddballScreenNum: getOddballScreenNum(numScreens),
       oddballDuration: getOddballDuration(),
       oddballType: getOddballType(),
@@ -236,6 +296,8 @@ class App extends KeyBinding {
     const mode = (() => {
       switch (this.state.mode) {
         case Mode.Instructions:
+          return Mode.InterBlockScreen
+        case Mode.InterBlockScreen:
           return Mode.Fixation
         case Mode.StandardStimlus:
         case Mode.OddballStimulus:
@@ -248,10 +310,38 @@ class App extends KeyBinding {
     })()
 
     const screenNum = mode === Mode.Fixation ? this.state.screenNum + 1 : this.state.screenNum
-    if (mode !== Mode.UserInput) {
+
+    if (mode !== Mode.UserInput && mode !== Mode.InterBlockScreen) {
       setTimeout(() => this.advanceMode(), this.delay(mode))
     }
     this.setState({mode, screenNum})
+  }
+
+  advanceTrial() {
+    const numScreens = getNumScreens()
+    const newState = {
+      numScreens: numScreens,
+      standard: stimuliToShow(),
+      oddballScreenNum: getOddballScreenNum(numScreens),
+      oddballDuration: getOddballDuration(),
+      oddballType: getOddballType(),
+    }
+
+    if(this.state.trial < NUM_TRIALS_PER_BLOCK) {
+      newState.trial = this.state.trial + 1
+      newState.screenNum = 0
+      newState.mode = Mode.Fixation
+      setTimeout(() => this.advanceMode(), this.delay(Mode.Fixation))
+    } else if(this.state.block < NUM_BLOCKS) {
+      newState.trial = 0
+      newState.screenNum = -1
+      newState.block = this.state.block + 1
+      newState.mode = Mode.InterBlockScreen
+    } else {
+      newState.mode = Mode.EndScreen
+    }
+
+    this.setState(newState)
   }
 
   delay(mode) {
@@ -265,6 +355,26 @@ class App extends KeyBinding {
       default:
         throw Error("You shouldn't be here (delay).")
     }
+  }
+
+  recordTrialData(data) {
+    const { user, trial, block, oddballType, oddballDuration, oddball, standard } = this.state
+    const { shorter, number } = data
+    const newDatum = [
+      user,                                          // User ID
+      block,                                         // Block #
+      trial,                                         // Trial #
+      +(oddballType === OddballType.Star),           // Is supa fancy oddball
+      oddball.length,                                // Actual num objects
+      number,                                        // Reported num objects
+      oddballDuration,                               // Oddball duration
+      +(oddballDuration < 1050),                     // Actual shorter
+      +shorter,                                      // Reported shorter
+      standard.join(':'),                            // Indexes of standard
+      oddball.join(':'),                             // Indexes of oddball
+    ]
+
+    this.setState({data: this.state.data.concat([newDatum])})
   }
 
   render() {
@@ -312,13 +422,29 @@ class App extends KeyBinding {
     if (this.state.mode === Mode.UserInput) {
       return (
         <div className="App">
-          <UserInput onSubmit={data => alert(JSON.stringify(data))}/>
+          <UserInput onSubmit={data => { this.recordTrialData(data); this.advanceTrial() }}/>
+        </div>
+      )
+    }
+
+    if (this.state.mode === Mode.EndScreen) {
+      return (
+        <div className="App">
+          <EndScreen data={this.state.data} user={this.state.user}/>
+        </div>
+      )
+    }
+
+    if (this.state.mode === Mode.InterBlockScreen) {
+      return (
+        <div className="App">
+          <InterBlockScreen onDone={() => this.advanceMode()} blockNum={this.state.block}/>
         </div>
       )
     }
 
     let stimuli = []
-    const toShow = this.state.mode === Mode.StandardStimlus ? this.state.standard : stimuliToShow()
+    const toShow = this.state.mode === Mode.StandardStimlus ? this.state.standard : this.state.oddball
     let stimuliPlaced = 0
     stimuli = _.range(GRID_SIZE).map(() => {
       const isShown = toShow.includes(stimuliPlaced++)
