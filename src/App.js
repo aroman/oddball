@@ -98,7 +98,7 @@ class Fixation extends Component {
   render() {
     return (
       <div className="Fixation">
-        <div className="Fixation-dot">&times;</div>
+        <div className="Fixation-dot">+</div>
       </div>
     )
   }
@@ -286,13 +286,17 @@ class App extends KeyBinding {
             </p>
             <p>
               After viewing these screens, you will answer two questions:
-              <ol>
-                <li><strong>How many</strong> non-green objects did you see?</li>
-                <li>Were the non-green objects displayed for a <strong>shorter</strong> or <strong>longer</strong> period of time than the green objects?</li>
-              </ol>
             </p>
+            <ol>
+              <li>
+                <strong>How many</strong> non-green objects did you see?
+              </li>
+              <li>
+                Were the non-green objects displayed for a <strong>shorter</strong> or <strong>longer</strong> period of time than the green objects?
+              </li>
+            </ol>
             <p>
-              First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.<p/>
+              First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.
             </p>
             <p>
               If you understand these instructions, please press <strong>continue</strong>.
