@@ -322,6 +322,7 @@ class App extends KeyBinding {
     const newState = {
       numScreens: numScreens,
       standard: stimuliToShow(),
+      oddball: stimuliToShow(),
       oddballScreenNum: getOddballScreenNum(numScreens),
       oddballDuration: getOddballDuration(),
       oddballType: getOddballType(),
