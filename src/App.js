@@ -173,15 +173,15 @@ class InterBlockScreen extends Component {
   render() {
     const { onDone, blockNum } = this.props
     const isPractice = (blockNum === 0)
-    const blockTitle = isPractice ? 'Practice' : `Block ${blockNum}/${NUM_BLOCKS}`
+    const blockTitle = isPractice ? 'Practice Block' : `Block ${blockNum} / ${NUM_BLOCKS}`
     return (
       <Instructions
         onDone={onDone}
-        title={`${blockTitle} complete`}
+        title={blockTitle}
       >
         <div style={{maxWidth: 600}}>
           <p>
-            If you need to take a short break, please do so now.
+            {isPractice ? '' : 'If you need to take a short break, please do so now.'}
           </p>
         </div>
       </Instructions>
@@ -214,7 +214,7 @@ class StartScreen extends Component {
           </li>
         </ol>
         <p>
-          First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.
+          First, you will complete a practice block consisting of {NUM_TRIALS_PER_BLOCK+1} trials. Then, you will complete {NUM_BLOCKS} blocks consisting of {NUM_TRIALS_PER_BLOCK+1} trials.
         </p>
         <p>
           If you understand these instructions, please press <strong>continue</strong>.
