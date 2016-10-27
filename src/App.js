@@ -35,6 +35,23 @@ const CSV_Headers = [
   'oddball_locs'
 ]
 
+const Mode = {
+  StartScreen: 0,
+  Fixation: 1,
+  StandardStimlus: 2,
+  OddballStimulus: 3,
+  UserInput: 4,
+  InterBlockScreen: 5,
+  EndScreen: 6,
+}
+
+const OddballType = {
+  Star: 0,
+  Circle: 1,
+}
+
+const getOddballType = () => _.sample(OddballType)
+
 const ISIJitter = () => {
   return _.random(950, 1150)
 }
@@ -122,12 +139,12 @@ class Instructions extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      canContinue: false,
+      canContinue: this.props.delay ? false : true,
     }
   }
 
   componentDidMount() {
-    setTimeout(() => this.setState({canContinue: true}), 5000)
+    setTimeout(() => this.setState({canContinue: true}), this.props.delay)
   }
 
   render() {
@@ -137,11 +154,14 @@ class Instructions extends Component {
         <div className="Instructions-content">
           <div className="Instructions-title">{title}</div>
           <div className="Instructions-body">{this.props.children}</div>
-          <button
-            className="Instructions-button"
-            disabled={!this.state.canContinue}
-            onClick={onDone}>continue
-          </button>
+          {
+            !onDone ? null :
+            <button
+              className="Instructions-button"
+              disabled={!this.state.canContinue}
+              onClick={onDone}>continue
+            </button>
+          }
         </div>
       </div>
     )
@@ -149,45 +169,87 @@ class Instructions extends Component {
 }
 
 class InterBlockScreen extends Component {
+
   render() {
     const { onDone, blockNum } = this.props
-    const blockText = blockNum === 0 ? 'Practice Block' : 'Block ' + blockNum + '/' + NUM_BLOCKS
-    const relaxText = blockNum === 0 ? '' : 'If you need to take a short break, please do so now.'
-
+    const isPractice = (blockNum === 0)
+    const blockTitle = isPractice ? 'Practice' : `Block ${blockNum}/${NUM_BLOCKS}`
     return (
-      <div className="InterBlockScreen">
-        <div className="InterBlockScreen-content">{blockText}</div>
-        <div className="InterBlockScreen-content2">{relaxText}</div>
-        <button
-          className="InterBlockScreen-button"
-          onClick={onDone}>continue
-        </button>
-      </div>
+      <Instructions
+        onDone={onDone}
+        title={`${blockTitle} complete`}
+      >
+        <div style={{maxWidth: 600}}>
+          <p>
+            If you need to take a short break, please do so now.
+          </p>
+        </div>
+      </Instructions>
     )
   }
+
+}
+
+class StartScreen extends Component {
+
+  render() {
+    return (
+      <Instructions
+        delay={5000}
+        onDone={this.props.onDone}
+        title="Please read these instructions carefully."
+      >
+        <p>
+          In this experiment, you will be shown screens displaying <strong>green objects</strong> and screens displaying various <strong>non-green objects</strong>.
+        </p>
+        <p>
+          After viewing these screens, you will answer two questions:
+        </p>
+        <ol>
+          <li>
+            <strong>How many</strong> non-green objects did you see?
+          </li>
+          <li>
+            Were the non-green objects displayed for a <strong>shorter</strong> or <strong>longer</strong> period of time than the green objects?
+          </li>
+        </ol>
+        <p>
+          First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.
+        </p>
+        <p>
+          If you understand these instructions, please press <strong>continue</strong>.
+          Otherwise, please <strong>ask for help</strong>.
+        </p>
+      </Instructions>
+    )
+  }
+
 }
 
 class EndScreen extends Component {
+
   render() {
-    const csv = [CSV_Headers].concat(this.props.data).map((datum) => datum.join(",")).join("\n")
+    const csv = [CSV_Headers]
+    .concat(this.props.data)
+    .map(datum => datum.join(","))
+    .join("\n")
     const data = "data:text/csv;charset=utf-8," + csv
 
-    const encodedUri = encodeURI(data)
     const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "results_" + this.props.user + ".csv")
+    link.setAttribute("href", encodeURI(data))
+    link.setAttribute("download", `results_${this.props.user}.csv`)
 
     link.click()
 
     return (
-      <div className="EndScreen">
-        Thank you. Your results have been recorded. Have a nice day.
-      </div>
+      <Instructions title="Thank you. Your results have been recorded."/>
     )
   }
+
 }
 
 class UserInput extends Component {
+
   constructor(props) {
     super(props)
     this.state = {
@@ -253,33 +315,18 @@ class UserInput extends Component {
       </div>
     )
   }
-}
 
-const Mode = {
-  Instructions: 0,
-  Fixation: 1,
-  StandardStimlus: 2,
-  OddballStimulus: 3,
-  UserInput: 4,
-  InterBlockScreen: 5,
-  EndScreen: 6,
 }
-
-const OddballType = {
-  Star: 0,
-  Circle: 1,
-}
-
-const getOddballType = () => _.sample(OddballType)
 
 class App extends KeyBinding {
+
   constructor(props) {
     super(props)
     const numScreens = getNumScreens()
     this.state = {
       data: [],
       user: 217,
-      mode: Mode.Instructions,
+      mode: Mode.StartScreen,
       block: 0,
       trial: 0,
       screenNum: -1,
@@ -295,7 +342,7 @@ class App extends KeyBinding {
   advanceMode() {
     const mode = (() => {
       switch (this.state.mode) {
-        case Mode.Instructions:
+        case Mode.StartScreen:
           return Mode.InterBlockScreen
         case Mode.InterBlockScreen:
           return Mode.Fixation
@@ -328,12 +375,12 @@ class App extends KeyBinding {
       oddballType: getOddballType(),
     }
 
-    if(this.state.trial < NUM_TRIALS_PER_BLOCK) {
+    if (this.state.trial < NUM_TRIALS_PER_BLOCK) {
       newState.trial = this.state.trial + 1
       newState.screenNum = 0
       newState.mode = Mode.Fixation
       setTimeout(() => this.advanceMode(), this.delay(Mode.Fixation))
-    } else if(this.state.block < NUM_BLOCKS) {
+    } else if (this.state.block < NUM_BLOCKS) {
       newState.trial = 0
       newState.screenNum = -1
       newState.block = this.state.block + 1
@@ -379,90 +426,60 @@ class App extends KeyBinding {
   }
 
   render() {
-    if (this.state.mode === Mode.Instructions) {
-      return (
-        <div className="App">
-          <Instructions
-            onDone={() => this.advanceMode()}
-            title="Please read these instructions carefully."
-          >
-            <p>
-              In this experiment, you will be shown screens displaying <strong>green objects</strong> and screens displaying various <strong>non-green objects</strong>.
-            </p>
-            <p>
-              After viewing these screens, you will answer two questions:
-            </p>
-            <ol>
-              <li>
-                <strong>How many</strong> non-green objects did you see?
-              </li>
-              <li>
-                Were the non-green objects displayed for a <strong>shorter</strong> or <strong>longer</strong> period of time than the green objects?
-              </li>
-            </ol>
-            <p>
-              First, you will complete a practice block consisting of 20 trials. Then, you will complete 8 blocks consisting of 20 trials.
-            </p>
-            <p>
-              If you understand these instructions, please press <strong>continue</strong>.
-              Otherwise, please <strong>ask for help</strong>.
-            </p>
-          </Instructions>
-        </div>
+    let component = null
+
+    if (this.state.mode === Mode.StartScreen) {
+      component = (
+        <StartScreen onDone={() => this.advanceMode()}/>
       )
     }
-
-    if (this.state.mode === Mode.Fixation) {
-      return (
-        <div className="App">
-          <Fixation/>
-        </div>
+    else if (this.state.mode === Mode.Fixation) {
+      component = (
+        <Fixation/>
       )
     }
-
-    if (this.state.mode === Mode.UserInput) {
-      return (
-        <div className="App">
-          <UserInput onSubmit={data => { this.recordTrialData(data); this.advanceTrial() }}/>
-        </div>
+    else if (this.state.mode === Mode.UserInput) {
+      component = (
+        <UserInput onSubmit={data => { this.recordTrialData(data); this.advanceTrial() }}/>
       )
     }
-
-    if (this.state.mode === Mode.EndScreen) {
-      return (
-        <div className="App">
-          <EndScreen data={this.state.data} user={this.state.user}/>
-        </div>
+    else if (this.state.mode === Mode.InterBlockScreen) {
+      component = (
+        <InterBlockScreen
+          onDone={() => this.advanceMode()}
+          blockNum={this.state.block}
+        />
       )
     }
-
-    if (this.state.mode === Mode.InterBlockScreen) {
-      return (
-        <div className="App">
-          <InterBlockScreen onDone={() => this.advanceMode()} blockNum={this.state.block}/>
-        </div>
+    else if (this.state.mode === Mode.EndScreen) {
+      component = (
+        <EndScreen data={this.state.data} user={this.state.user}/>
       )
     }
-
-    let stimuli = []
-    const toShow = this.state.mode === Mode.StandardStimlus ? this.state.standard : this.state.oddball
-    let stimuliPlaced = 0
-    stimuli = _.range(GRID_SIZE).map(() => {
-      const isShown = toShow.includes(stimuliPlaced++)
-      if (this.state.mode === Mode.StandardStimlus) {
-        return <Circle color={NormalColors.Green} isShown={isShown} />
-      } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Star) {
-        return <Star isShown={isShown} />
-      } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Circle) {
-        return <Circle color={NormalColors.Red} isShown={isShown} />
-      } else {
-        throw Error("You shouldn't be here (render)")
-      }
-    })
+    else {
+      let stimuli = []
+      const toShow = this.state.mode === Mode.StandardStimlus ? this.state.standard : this.state.oddball
+      let stimuliPlaced = 0
+      stimuli = _.range(GRID_SIZE).map(() => {
+        const isShown = toShow.includes(stimuliPlaced++)
+        if (this.state.mode === Mode.StandardStimlus) {
+          return <Circle color={NormalColors.Green} isShown={isShown} />
+        } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Star) {
+          return <Star isShown={isShown} />
+        } else if (this.state.mode === Mode.OddballStimulus && this.state.oddballType === OddballType.Circle) {
+          return <Circle color={NormalColors.Red} isShown={isShown} />
+        } else {
+          throw Error("You shouldn't be here (render)")
+        }
+      })
+      component = (
+        <Grid onKey={this.onKey} stimuli={stimuli}/>
+      )
+    }
 
     return (
       <div className="App">
-        <Grid onKey={this.onKey} stimuli={stimuli}/>
+        {component}
       </div>
     )
   }
