@@ -8,6 +8,8 @@ const GRID_SIZE = 64 // scalar
 const VISUAL_ANGLE = 11 // px
 const NUM_BLOCKS = 8 // 1-indexed because I suck
 const NUM_TRIALS_PER_BLOCK = 19 // 0-indexed because I suck
+const MIN_SCREENS = 4
+const MAX_SCREENS = 14
 
 const NormalColors = {
   Red: '#FF0000',
@@ -60,9 +62,9 @@ const placementJitter = () => {
   return _.random(-VISUAL_ANGLE, VISUAL_ANGLE)
 }
 
-const getNumScreens = () => _.random(4, 14)
+const getNumScreens = () => _.random(MIN_SCREENS, MAX_SCREENS)
 
-const getOddballScreenNum = (numScreens) => _.random(4, numScreens)
+const getOddballScreenNum = (numScreens) => _.random(MIN_SCREENS, numScreens)
 
 const getOddballDuration = () => _.sample([750, 900, 1200, 1350])
 
