@@ -244,7 +244,12 @@ class EndScreen extends Component {
     link.click()
 
     return (
-      <Instructions title="Thank you. Your results have been recorded."/>
+      <Instructions title="Thank you for participating!">
+      <div style={{width: 550}}>
+        <p>Your results have been saved to your Downloads folder as a CSV.</p>
+        <p>Please email this file to <a href="mailto:romanoff@cmu.edu">romanoff@cmu.edu.</a></p>
+      </div>
+      </Instructions>
     )
   }
 
