@@ -64,7 +64,7 @@ const placementJitter = () => {
 
 const getNumScreens = () => _.random(MIN_SCREENS, MAX_SCREENS)
 
-const getOddballScreenNum = (numScreens) => _.random(MIN_SCREENS, numScreens)
+const getOddballScreenNum = (numScreens) => _.random(MIN_SCREENS+3, numScreens-1)
 
 const getOddballDuration = () => _.sample([750, 900, 1200, 1350])
 
@@ -413,10 +413,10 @@ class App extends KeyBinding {
 
     const screenNum = mode === Mode.Fixation ? this.state.screenNum + 1 : this.state.screenNum
 
-    if (mode !== Mode.UserInput && mode !== Mode.InterBlockScreen) {
+    if (mode !== Mode.UserInput && mode !== Mode.InterBlockScreen && mode !== Mode.StartScreen) {
       setTimeout(() => this.advanceMode(), this.delay(mode))
     }
-    this.setState({mode, screenNum})
+    this.setState({mode, screenNum, standard: stimuliToShow()})
   }
 
   advanceTrial() {
