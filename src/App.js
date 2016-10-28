@@ -255,6 +255,52 @@ class EndScreen extends Component {
 
 }
 
+class PromptForBirthday extends Component {
+
+  onClick() {
+    const month = Number(this.monthSelect.value)
+    const day = Number(this.daySelect.value)
+    if (!month || !day) {
+      alert('Please choose select the month and day of your birthday.')
+      return
+    }
+    this.props.onBirthday({month, day})
+  }
+
+  render() {
+    const months = [
+      'January',
+      'Febuary',
+      'March',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ]
+    return (
+      <Instructions title="Please enter your birthday.">
+      <p>This will identify you anonymously in our data set.</p>
+      <div className="Prompt-group">
+        <select name="month" ref={c => this.monthSelect = c}>
+          <option> - Month - </option>
+        { months.map((name, number) => <option key={name} value={number + 1}>{name}</option>) }
+        </select>
+        <select name="day" ref={c => this.daySelect = c}>
+          <option> - Day - </option>
+          { _.range(1, 32).map(day => <option key={day} value={day}>{day}</option>) }
+        </select>
+        <button onClick={this.onClick.bind(this)}>submit</button>
+      </div>
+      </Instructions>
+    )
+  }
+
+}
+
 class UserInput extends Component {
 
   constructor(props) {
@@ -333,7 +379,7 @@ class App extends KeyBinding {
     this.state = {
       data: [],
       user: 217,
-      mode: Mode.StartScreen,
+      mode: Mode.PromptForBirthday,
       block: 0,
       trial: 0,
       screenNum: -1,
@@ -349,6 +395,8 @@ class App extends KeyBinding {
   advanceMode() {
     const mode = (() => {
       switch (this.state.mode) {
+        case Mode.PromptForBirthday:
+          return Mode.StartScreen
         case Mode.StartScreen:
           return Mode.InterBlockScreen
         case Mode.InterBlockScreen:
@@ -433,9 +481,22 @@ class App extends KeyBinding {
   }
 
   render() {
+
     let component = null
 
-    if (this.state.mode === Mode.StartScreen) {
+    if (this.state.mode === Mode.PromptForBirthday) {
+      const onBirthday = ({day, month}) => {
+        this.setState({
+          user: Number(`${month}${day}`),
+          state: StartScreen,
+        })
+        this.advanceMode()
+      }
+      component = (
+        <PromptForBirthday onBirthday={onBirthday}/>
+      )
+    }
+    else if (this.state.mode === Mode.StartScreen) {
       component = (
         <StartScreen onDone={() => this.advanceMode()}/>
       )

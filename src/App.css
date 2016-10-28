@@ -150,3 +150,23 @@ html, body, #root, .App {
   padding-left: 15px;
   padding-right: 15px;
 }
+
+.Prompt-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Prompt-group > select {
+  margin: 10px;
+  width: 100px;
+  font-size: 18px;
+}
+
+.Prompt-group > button {
+  margin-left: 10px;
+  font-size: 18px;
+  padding: 4px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
