@@ -6,8 +6,8 @@ import './App.css';
 const STIM_SIZE = 50 // px
 const GRID_SIZE = 64 // scalar
 const VISUAL_ANGLE = 11 // px
-const NUM_BLOCKS = 8 // 1-indexed because I suck
-const NUM_TRIALS_PER_BLOCK = 19 // 0-indexed because I suck
+const NUM_BLOCKS = 1 // 1-indexed because I suck
+const NUM_TRIALS_PER_BLOCK = 1 // 0-indexed because I suck
 const MIN_SCREENS = 4
 const MAX_SCREENS = 14
 
@@ -64,7 +64,7 @@ const placementJitter = () => {
 
 const getNumScreens = () => _.random(MIN_SCREENS, MAX_SCREENS)
 
-const getOddballScreenNum = (numScreens) => _.random(MIN_SCREENS+3, numScreens-1)
+const getOddballScreenNum = (numScreens) => _.random(3, numScreens-1)
 
 const getOddballDuration = () => _.sample([750, 900, 1200, 1350])
 
@@ -378,7 +378,6 @@ class App extends KeyBinding {
     const numScreens = getNumScreens()
     this.state = {
       data: [],
-      user: 217,
       mode: Mode.PromptForBirthday,
       block: 0,
       trial: 0,
