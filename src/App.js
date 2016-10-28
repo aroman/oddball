@@ -7,7 +7,7 @@ const STIM_SIZE = 50 // px
 const GRID_SIZE = 64 // scalar
 const VISUAL_ANGLE = 11 // px
 const NUM_BLOCKS = 8 // 1-indexed because I suck
-const NUM_TRIALS_PER_BLOCK = 19 // 0-indexed because I suck
+const NUM_TRIALS_PER_BLOCK = 9 // 0-indexed because I suck
 const MIN_SCREENS = 4
 const MAX_SCREENS = 14
 
