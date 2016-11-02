@@ -34,6 +34,7 @@ const CSV_Headers = [
   'oddball_duration',
   'actual_shorter',
   'reported_shorter',
+  'standard_locs',
   'oddball_locs'
 ]
 
